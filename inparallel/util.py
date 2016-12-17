@@ -47,7 +47,7 @@ def extract(text, regex):
 
 def raiseExceptionInThread(thread_obj, exception):
     """ :type thread_obj: threading.Thread
-        :type exception: Exception
+        :type exception: BaseException
         :rtype: bool
     """
 

@@ -16,7 +16,6 @@ if (4, 0) > sys.version_info >= (3, 4):
 
     requires = '''
         six<1.12.0
-        futures<3.1.0
         tblib<1.4.0
     '''
 
@@ -24,6 +23,7 @@ elif (3, 0) > sys.version_info >= (2, 7):
 
     requires = '''
         six<1.12.0
+        futures<3.1.0
         tblib<1.4.0
     '''
 
@@ -35,13 +35,13 @@ else:
 
 setup(
     name='inparallel',
-    version='0.9.0',
+    version='0.9.1',
     author='Alex Forster',
     author_email='alex@alexforster.com',
     maintainer='Alex Forster',
     maintainer_email='alex@alexforster.com',
     url='https://github.com/AlexForster/inparallel',
-    description='Another library for running task pipelines in parallel using multiprocessing',
+    description='Simple and flexible task parallelism (CPython 2.7 or 3.4+)',
     license='3-Clause ("New") BSD license',
     download_url='https://pypi.python.org/pypi/inparallel',
     packages=['inparallel'],
@@ -52,7 +52,8 @@ setup(
     ]},
     install_requires=[r for r in requires.splitlines() if r],
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
+        #'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: MacOS :: MacOS X',
