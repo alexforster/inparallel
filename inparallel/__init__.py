@@ -6,4 +6,3 @@
 #
 
 from inparallel.task import task
-

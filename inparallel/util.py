@@ -9,6 +9,8 @@ import sys
 import os
 import re
 import functools
+import threading
+import ctypes
 
 import six
 
@@ -41,3 +43,31 @@ def extract(text, regex):
         return matches[0]
 
     return matches
+
+
+def raiseExceptionInThread(thread_obj, exception):
+    """ :type thread_obj: threading.Thread
+        :type exception: Exception
+        :rtype: bool
+    """
+
+    target_tid = thread_obj.ident
+
+    if target_tid not in {thread.ident for thread in threading.enumerate()}:
+
+        return False  # invalid thread object - cannot find thread identity among currently active threads
+
+    affected_count = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(target_tid), ctypes.py_object(exception))
+
+    if affected_count == 0:
+
+        return False  # invalid thread identity - no thread has been affected
+
+    elif affected_count > 1:
+
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(target_tid), ctypes.c_long(0))
+        raise SystemError('Raising {} in thread {} ({}) failed; the runtime is now in an inconsistent state'.format(
+            type(exception).__name__, thread_obj.name, thread_obj.ident
+        ))
+
+    return True

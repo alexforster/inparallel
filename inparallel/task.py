@@ -14,21 +14,25 @@ import multiprocessing
 import concurrent.futures
 
 import six
-import tblib.pickling_support
+
+from tblib.pickling_support import pickle_traceback, unpickle_traceback
 
 from . import util
 
 
+_pid = None
+""":type: int"""
+_thread = None
+""":type: threading.Thread"""
 _tasks = None
+""":type: dict[int, tuple[multiprocessing.Connection, multiprocessing.Connection, concurrent.futures.Future]]"""
 
 
 def _worker():
 
-    global _tasks
+    global _pid, _thread, _tasks
 
-    tblib.pickling_support.install()
-
-    while getattr(_worker, 'running'):
+    while True:
 
         for child_pid, task in six.iteritems(_tasks.copy()):
 
@@ -60,6 +64,8 @@ def _worker():
 
                     ex_type, ex_value, ex_traceback = parent_ex.recv()
 
+                    ex_traceback = unpickle_traceback(*ex_traceback)
+
                     parent.close()
                     parent_ex.close()
 
@@ -86,20 +92,16 @@ def _future(child_pid, parent, parent_ex):
         :rtype future: concurrent.futures.Future
     """
 
-    global _tasks
+    global _pid, _thread, _tasks
 
-    if getattr(_worker, 'pid', -1) != os.getpid():
+    if _pid != os.getpid():
 
         _tasks = {}
 
-        thread = threading.Thread(target=_worker, name='inparallel-{}'.format(os.getpid()))
-        thread.setDaemon(True)
-
-        setattr(_worker, 'pid', os.getpid())
-        setattr(_worker, 'thread', thread)
-        setattr(_worker, 'running', True)
-
-        thread.start()
+        _pid = os.getpid()
+        _thread = threading.Thread(target=_worker, name='inparallel-{}'.format(os.getpid()))
+        _thread.setDaemon(True)
+        _thread.start()
 
     future = concurrent.futures.Future()
     future.set_running_or_notify_cancel()
@@ -115,6 +117,8 @@ def task(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
 
+        global _pid, _thread, _tasks
+
         parent, child = multiprocessing.Pipe()
         parent_ex, child_ex = multiprocessing.Pipe()
         child_pid = os.fork()
@@ -127,17 +131,20 @@ def task(fn):
 
             except Exception:
 
-                child_ex.send(sys.exc_info())
+                ex_type, ex_value, ex_traceback = sys.exc_info()
+                _, ex_traceback = pickle_traceback(ex_traceback)
+
+                child_ex.send((ex_type, ex_value, ex_traceback))
 
             finally:
 
                 child.close()
                 child_ex.close()
 
-            if hasattr(_worker, 'thread'):
+            if _thread:
 
-                setattr(_worker, 'running', False)
-                getattr(_worker, 'thread').join()
+                util.raiseExceptionInThread(_thread, SystemExit)
+                _thread.join()
 
             sys.exit(0)
 

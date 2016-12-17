@@ -12,7 +12,7 @@ from setuptools import setup
 
 requires = ''
 
-if sys.version_info >= (3, 4):
+if (4, 0) > sys.version_info >= (3, 4):
 
     requires = '''
         six<1.12.0
@@ -20,7 +20,7 @@ if sys.version_info >= (3, 4):
         tblib<1.4.0
     '''
 
-elif sys.version_info >= (2, 7):
+elif (3, 0) > sys.version_info >= (2, 7):
 
     requires = '''
         six<1.12.0
