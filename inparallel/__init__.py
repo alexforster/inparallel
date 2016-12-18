@@ -6,3 +6,4 @@
 #
 
 from inparallel.task import task
+from inparallel.waitfor import waitfor

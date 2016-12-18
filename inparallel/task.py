@@ -114,7 +114,7 @@ def _future(child_pid, parent, parent_ex):
 @util.decorator
 def task(fn):
 
-    @functools.wraps(fn)
+    @six.wraps(fn)
     def wrapper(*args, **kwargs):
 
         global _pid, _thread, _tasks

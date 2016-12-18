@@ -17,7 +17,7 @@ import six
 
 def decorator(fn):
 
-    @functools.wraps(fn)
+    @six.wraps(fn)
     def wrapper(*args, **kwargs):
 
         if len(args) == 1 and len(kwargs) == 0 and six.callable(args[0]):
