@@ -35,7 +35,7 @@ else:
 
 setup(
     name='inparallel',
-    version='0.11.1',
+    version='0.11.2',
     author='Alex Forster',
     author_email='alex@alexforster.com',
     maintainer='Alex Forster',

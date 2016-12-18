@@ -32,7 +32,7 @@ def waitfor(in_flight, concurrency_factor=None):
             in_flight.remove(task)
             yield task
 
-        if concurrency_factor and len(in_flight) < concurrency_factor:
+        if concurrency_factor is not None and len(in_flight) < concurrency_factor:
 
             yield None
 
