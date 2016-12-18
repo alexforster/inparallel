@@ -15,13 +15,11 @@ import six
 
 
 def waitfor(tasks):
-    """ :type tasks: list[concurrent.futures.Future]
-        :rtype: list[concurrent.futures.Future]
+    """ :type tasks: collections.MutableSequence[concurrent.futures.Future]
+        :rtype: collections.Iterable[concurrent.futures.Future]
     """
 
-    assert(isinstance(tasks, collections.Iterable))
-
-    tasks = list(tasks)
+    assert(isinstance(tasks, collections.MutableSequence))
 
     while True:
 
@@ -29,9 +27,8 @@ def waitfor(tasks):
 
         for task in done:
 
+            tasks.remove(task)
             yield task
-
-        tasks = [t for t in tasks if t not in done]
 
         if len(tasks) == 0:
 
