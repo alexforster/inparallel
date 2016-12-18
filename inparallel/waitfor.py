@@ -14,24 +14,50 @@ import concurrent.futures
 import six
 
 
-def waitfor(tasks):
-    """ :type tasks: collections.MutableSequence[concurrent.futures.Future]
+def waitfor(in_flight, concurrency_factor=None):
+    """ :type in_flight: collections.MutableSequence[concurrent.futures.Future]
+        :type concurrency_factor: int|None
         :rtype: collections.Iterable[concurrent.futures.Future]
     """
 
-    assert(isinstance(tasks, collections.MutableSequence))
+    assert(isinstance(in_flight, collections.MutableSequence))
 
-    while True:
+    if concurrency_factor is not None:
 
-        done = [t for t in tasks if t.done()]
+        assert(isinstance(concurrency_factor, six.integer_types) and concurrency_factor > 0)
 
-        for task in done:
+        while True:
 
-            tasks.remove(task)
-            yield task
+            done = [t for t in in_flight if t.done()]
 
-        if len(tasks) == 0:
+            for task in done:
 
-            break
+                in_flight.remove(task)
+                yield task
 
-        time.sleep(0.001)
+            if len(in_flight) < concurrency_factor:
+
+                yield None
+
+                if len(in_flight) == 0:
+
+                    break
+
+            time.sleep(0.001)
+
+    else:
+
+        while True:
+
+            done = [t for t in in_flight if t.done()]
+
+            for task in done:
+
+                in_flight.remove(task)
+                yield task
+
+            if len(in_flight) == 0:
+
+                break
+
+            time.sleep(0.001)
