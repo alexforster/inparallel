@@ -1,7 +1,8 @@
 in\ *parallel*
 ==============
 
-in\ *parallel* is a novel take on process-based parallelism in Python.
+in\ *parallel* is a novel take on process-based parallelism in Python using ``fork()`` to implement futures-based
+concurrency.
 
 :Author:
     Alex Forster (alex@alexforster.com)
@@ -13,37 +14,69 @@ Installation
 
 ``pip install inparallel``
 
-**Requirements**
+| **GitHub:** https://github.com/alexforster/inparallel/tree/v1.0.0
+| **PyPI:** https://pypi.python.org/pypi/inparallel/1.0.0
 
--  ``six`` – Python 2 and 3 compatibility shims
--  ``tblib`` – pickling support for ``traceback`` objects
--  ``futures`` – backport of ``concurrent.futures`` *(Python 2 only)*
+**Dependencies**
+
+-  ``six`` – Python 2 and 3 compatibility shims
+-  ``tblib`` – pickling support for ``traceback`` objects
+-  ``futures`` – backport of ``concurrent.futures`` *(Python 2 only)*
 
 in\ *parallel* is compatible with both Python 2.7 and 3.4+
 
 Documentation
 -------------
 
-There are only two objects exported by the in\ *parallel* library–
+There are just two objects exported by the in\ *parallel* library–
 
     **@task**
 
     A decorator used to annotate functions or class methods that you
     want to invoke asynchronously
 
-    **waitfor(in_flight, concurrency_factor=None)**
+    **waitfor(in_flight, concurrency_factor=None) -> Future**
 
     A generator used to manage the lifecycle of asynchronous invocations
 
     Arguments–
 
-    -  **in_flight** : ``collections.MutableSequence`` of ``Future``
-       objects
-    -  **concurrency_factor** : ``int|None`` representing the
+    -  **in_flight** : ``collections.MutableSequence`` (read: ``list``)
+       of ``Future`` objects
+    -  **concurrency_factor** : ``int|None`` representing the
        desired maximum number of active asynchronous tasks
 
-Example Code
-------------
+Check out the guided examples below to learn how this library is unique.
+
+Examples
+--------
+
+Here's an example that demonstrates how to run a function in the background
+and use the ``concurrent.futures.Future`` object to wait for its result–
+
+.. code:: python
+
+    #!/usr/bin/env python
+
+    import time
+    from inparallel import task, waitfor
+
+    if __name__ == '__main__':
+
+    # Notice how we decorate say_hello() with the @task decorator.
+    # That's how you make a function run asynchronously when it's called.
+
+        @task
+        def say_hello(to):
+
+            time.sleep(3)
+            return 'Hello, {}!'.format(to)
+
+        hello_future = say_hello('Emily')  # returns a concurrent.futures.Future object
+
+        hello_future.wait()  # waits for three seconds
+
+        print(hello_future.result())  # prints "Hello, Emily!"
 
 Here's an example that concurrently logs in to a list of servers and
 gathers their ``uname`` outputs–
@@ -58,16 +91,13 @@ gathers their ``uname`` outputs–
     if __name__ == '__main__':
 
         servers = [
-            'alpha.local',   'bravo.local',
+            'alpha.local', 'bravo.local',
             'charlie.local', 'delta.local',
-            'echo.local',    'foxtrot.local',
-            'golf.local',    'hotel.local',
-            'india.local',   'juliet.local',
-            'kilo.local',    'lima.local'
+            'echo.local', 'foxtrot.local',
+            'golf.local', 'hotel.local',
+            'india.local', 'juliet.local',
+            'kilo.local', 'lima.local'
         ]
-
-    # Notice how we decorate getOS() with the @task decorator. That's how
-    # you annotate a function to make it run asynchronously.
 
         @task
         def getOS(server):
@@ -113,7 +143,7 @@ gathers their ``uname`` outputs–
     # futures complete, they will be removed from the list and yielded
     # back to the caller.
 
-    # The waitfor() function can also be used to manage the concurrency
+    # The waitfor() function can also be used to manage the concurrency
     # factor of your tasks, as demonstrated below.
 
 Here's the same example from above, modified to use the
@@ -175,11 +205,33 @@ asynchronous tasks run at a time–
                     active_futures.append(getOS(servers.pop(0)))
 
     # Here's the trick: when waitfor() yields None, it's asking you to
-    # run another task. You can run as many as you want, but you don't
-    # have to keep track of how many are in flight, because waitfor()
-    # will keep asking you for more tasks until it has reached its
-    # target concurrency_factor high watermark.
+    # run another task. waitfor() will keep asking you for more tasks
+    # until it has reached its target concurrency_factor high watermark,
+    # so you should only run one additional task for each iteration
+    # where you receive a None. This is how waitfor() is able to ensure
+    # that only a certain number of tasks are running at one time.
 
     # When waitfor() has no more active futures, it will ask you to run
     # another task one last time. If you don't run another task, then
     # it will break the loop.
+
+Notes
+-----
+
+-  This library is only compatible with CPython, and only on platforms
+   that support POSIX ``fork()`` semantics. This is unavoidable due to the
+   nature of the library.
+-  When a function is decorated with ``@task``, the only data that will
+   survive is what the function returns. Any modifications to global
+   objects will not persist past the function call.
+-  The data that you return from a ``@task`` must be picklable, since
+   multiple processes are involved. If this presents a challenge, check out
+   the ``dill`` library.
+-  You can invoke ``@task`` functions from inside of other ``@task`` functions,
+   but be mindful that each invocation spawns a subprocess of the calling
+   process, so deep recursion is unwise. On the other hand, this allows you to
+   build complex asynchronous task hierarchies if desired.
+-  Class methods (those with ``self`` parameters) can be decorated with
+   ``@task`` and used normally, without the need for partial bindings.
+-  Exceptions will bubble from the child interpreter to the parent with
+   accurate tracebacks, thanks to the ``tblib`` library.
