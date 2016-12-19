@@ -58,6 +58,10 @@ def _worker():
 
                     pass
 
+                finally:
+
+                    os.waitpid(child_pid, 0)
+
             if parent_ex.poll():
 
                 try:
@@ -82,6 +86,10 @@ def _worker():
                 except EOFError:
 
                     pass
+
+                finally:
+
+                    os.waitpid(child_pid, 0)
 
         time.sleep(0.001)
 
@@ -146,7 +154,7 @@ def task(fn):
                 util.raiseExceptionInThread(_thread, SystemExit)
                 _thread.join()
 
-            sys.exit(0)
+            os._exit(0)
 
         return _future(child_pid, parent, parent_ex)
 
