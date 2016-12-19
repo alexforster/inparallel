@@ -35,13 +35,13 @@ else:
 
 setup(
     name='inparallel',
-    version='0.11.2',
+    version='1.0.0',
     author='Alex Forster',
     author_email='alex@alexforster.com',
     maintainer='Alex Forster',
     maintainer_email='alex@alexforster.com',
     url='https://github.com/AlexForster/inparallel',
-    description='Simple and flexible task parallelism (CPython 2.7 or 3.4+)',
+    description='A novel take on process-based parallelism in Python (CPython 2.7 or 3.4+)',
     license='3-Clause ("New") BSD license',
     download_url='https://pypi.python.org/pypi/inparallel',
     packages=['inparallel'],
@@ -52,8 +52,7 @@ setup(
     ]},
     install_requires=[r for r in requires.splitlines() if r],
     classifiers=[
-        'Development Status :: 4 - Beta',
-        #'Development Status :: 5 - Production/Stable',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: MacOS :: MacOS X',
