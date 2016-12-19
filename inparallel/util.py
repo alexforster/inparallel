@@ -28,23 +28,6 @@ def decorator(fn):
     return wrapper
 
 
-def extract(text, regex):
-    """ :type text: str
-        :type regex: str
-        :rtype: tuple[str]|str|None
-    """
-
-    matches = re.findall(regex, text, flags=re.MULTILINE)
-
-    if matches is None or len(matches) == 0:
-        return None
-
-    if len(matches) == 1:
-        return matches[0]
-
-    return matches
-
-
 def raiseExceptionInThread(thread_obj, exception):
     """ :type thread_obj: threading.Thread
         :type exception: BaseException
