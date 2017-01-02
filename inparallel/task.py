@@ -60,7 +60,10 @@ def _worker():
 
                 finally:
 
-                    os.waitpid(child_pid, 0)
+                    try:
+                        os.waitpid(child_pid, 0)
+                    except OSError:
+                        pass
 
             if parent_ex.poll():
 
@@ -89,7 +92,10 @@ def _worker():
 
                 finally:
 
-                    os.waitpid(child_pid, 0)
+                    try:
+                        os.waitpid(child_pid, 0)
+                    except OSError:
+                        pass
 
         time.sleep(0.001)
 
