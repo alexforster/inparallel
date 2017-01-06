@@ -14,8 +14,8 @@ Installation
 
 ``pip install inparallel``
 
-| **GitHub:** https://github.com/alexforster/inparallel/tree/v1.0.2
-| **PyPI:** https://pypi.python.org/pypi/inparallel/1.0.2
+| **GitHub:** https://github.com/alexforster/inparallel/tree/v1.0.3
+| **PyPI:** https://pypi.python.org/pypi/inparallel/1.0.3
 
 **Dependencies**
 
