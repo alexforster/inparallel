@@ -69,7 +69,7 @@ def _worker():
 
                 try:
 
-                    ex_type, ex_value, ex_traceback = parent_ex.recv()
+                    _, ex_value, ex_traceback = parent_ex.recv()
 
                     ex_traceback = unpickle_traceback(*ex_traceback)
 
@@ -77,10 +77,10 @@ def _worker():
                     parent_ex.close()
 
                     if six.PY2:
-                        ex = ex_type(ex_value)
+                        ex = ex_value
                         future.set_exception_info(ex, ex_traceback)
                     elif six.PY3:
-                        ex = ex_type(ex_value).with_traceback(ex_traceback)
+                        ex = ex_value.with_traceback(ex_traceback)
                         future.set_exception(ex)
 
                     del _tasks[child_pid]
